@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Payroll System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main {
+            width: 900px;
+            height: 550px;
+            display: flex;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .left {
+            width: 50%;
+            background: linear-gradient(to bottom,#4a6cf7,#6ea8fe);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .right {
+            width: 50%;
+            background: white;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .input-group { margin-bottom: 15px; }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #4a6cf7;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .link {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #4a6cf7;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+
+<body>
+
+<div class="main">
+
+    <div class="left">
+        <h1>Employee Payroll System</h1>
+    </div>
+
+    <div class="right">
+
+        <!-- LOGIN -->
+        <div id="loginPage">
+            <h2>Login</h2>
+
+            <div class="input-group">
+                <input type="text" id="loginEmpId" placeholder="Employee ID">
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="loginPassword" placeholder="Password">
+            </div>
+
+            <button onclick="login()">Login</button>
+            <div class="link" onclick="showRegister()">New User? Register</div>
+        </div>
+
+        <!-- REGISTER -->
+        <div id="registerPage" class="hidden">
+            <h2>Register</h2>
+
+            <div class="input-group">
+                <input type="text" id="firstName" placeholder="First Name">
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="lastName" placeholder="Last Name">
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="empId" placeholder="Employee ID">
+            </div>
+
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email">
+            </div>
+
+            <div class="input-group">
+                <select id="gender">
+                    <option value="">Select Gender</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="address" placeholder="Address">
+            </div>
+            <div class="input-group">
+                <input type="text" id="designation" placeholder="Designation">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password">
+            </div>
+            
+            <div class="input-group">
+                <input type="password" id="confirmPassword" placeholder="Confirm Password">
+            </div>
+
+            <button onclick="registerEmployee()">Register</button>
+            <div class="link" onclick="showLogin()">Already have account? Login</div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+function showRegister(){
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("registerPage").classList.remove("hidden");
+}
+
+function showLogin(){
+    document.getElementById("registerPage").classList.add("hidden");
+    document.getElementById("loginPage").classList.remove("hidden");
+}
+
+async function registerEmployee(){
+
+    const firstName = document.getElementById("firstName").value;
+    const lastName = document.getElementById("lastName").value;
+    const empId = document.getElementById("empId").value;
+    const email = document.getElementById("email").value;
+    const gender = document.getElementById("gender").value;
+    const address = document.getElementById("address").value;
+    const designation = document.getElementById("designation").value;
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if(!firstName || !lastName || !empId || !email || !gender || !address || !designation || !password || !confirmPassword){
+        alert("Fill all fields");
+        return;
+    }
+
+    if(password !== confirmPassword){
+        alert("Passwords do not match");
+        return;
+    }
+
+    const response = await fetch("/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            firstName,
+            lastName,
+            empId,
+            email,
+            gender,
+            address,
+            designation,
+            password
+        })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
+
+async function login(){
+
+    const empId = document.getElementById("loginEmpId").value;
+    const password = document.getElementById("loginPassword").value;
+
+    const response = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ empId, password })
+    });
+
+    const data = await response.json();
+
+    if(response.ok){
+
+        localStorage.setItem("loggedUser", data.firstName + " " + data.lastName);
+        localStorage.setItem("empId", data.empId);
+        localStorage.setItem("designation", data.designation);
+
+        window.location.href = "/dashboard.html";
+    } else {
+        alert(data.message);
+    }
+}
+
+</script>
+</body>
+</html>

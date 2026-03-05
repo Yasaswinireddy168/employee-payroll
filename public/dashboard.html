@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Employee Payroll Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #f4f6f9;
+}
+
+.topbar {
+    height: 60px;
+    background: #5f87c2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-weight: 500;
+}
+
+.container {
+    display: flex;
+}
+
+.sidebar {
+    width: 230px;
+    background: linear-gradient(to bottom,#4a6fa5,#6ea8fe);
+    min-height: calc(100vh - 60px);
+    color: white;
+}
+
+.sidebar h3 {
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+    background: rgba(0,0,0,0.2);
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    padding: 15px 25px;
+    cursor: pointer;
+    transition: 0.3s;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.sidebar ul li:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.content {
+    flex: 1;
+    padding: 40px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    margin-top: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    background: #4a6cf7;
+    color: white;
+    cursor: pointer;
+}
+
+input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 250px;
+}
+
+.hiddenSection {
+    display: none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div>Hi... <strong id="userName"></strong></div>
+    <div>
+        <button onclick="changePassword()">Change Password</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+
+<div class="sidebar">
+<h3>MENU</h3>
+
+<ul>
+<li onclick="showSection('working')">Working Days</li>
+<li onclick="showSection('salaryPast')">Salary Details (Past)</li>
+<li onclick="showSection('bonus')">Current Bonus</li>
+<li onclick="showSection('deduction')">Deduction</li>
+<li onclick="showSection('calculate')">Calculate Salary</li>
+<li onclick="showSection('slip')">Payroll Slip</li>
+</ul>
+
+</div>
+
+<div class="content">
+
+<h2>EMPLOYEE PAYROLL SYSTEM</h2>
+
+<div id="employeeList"></div>
+
+<div id="working" class="card hiddenSection">
+<h3>Working Days</h3>
+<p>Total Working Days: 22</p>
+</div>
+
+<div id="salaryPast" class="card hiddenSection">
+<h3>Salary Details (Past)</h3>
+<div id="pastSalary">
+Loading salary...
+</div>
+</div>
+
+<div id="bonus" class="card hiddenSection">
+<h3>Current Bonus</h3>
+<p>Festival Bonus: ₹ 5,000</p>
+</div>
+
+<div id="deduction" class="card hiddenSection">
+<h3>Deduction</h3>
+<p>PF Deduction: ₹ 2,000</p>
+</div>
+
+<div id="calculate" class="card hiddenSection">
+
+<h3>Calculate Salary</h3>
+
+<input type="number" id="basic" placeholder="Enter Basic Salary">
+
+<br><br>
+
+<button onclick="calculateSalary()">Calculate</button>
+
+<p id="result"></p>
+
+</div>
+
+<div id="slip" class="card hiddenSection">
+
+<h3>Payroll Slip</h3>
+
+<p>Employee Name: <span id="slipName"></span></p>
+
+<button onclick="window.print()">Print Slip</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const loggedUser = localStorage.getItem("loggedUser");
+const empId = localStorage.getItem("empId");
+const designation = localStorage.getItem("designation");
+
+if(!loggedUser || !empId){
+window.location.href="/login.html";
+}
+
+document.getElementById("userName").innerText = loggedUser;
+document.getElementById("slipName").innerText = loggedUser;
+
+function loadEmployeeCard(){
+
+let container = document.getElementById("employeeList");
+
+container.innerHTML=`
+
+<div class="card">
+
+<h3>${loggedUser}</h3>
+
+<p><strong>Employee ID:</strong> ${empId}</p>
+
+<p><strong>Designation:</strong> ${designation || "Not Provided"}</p>
+
+</div>
+
+`;
+
+}
+
+loadEmployeeCard();
+
+function showSection(id){
+
+let sections=document.getElementsByClassName("hiddenSection");
+
+for(let i=0;i<sections.length;i++){
+
+sections[i].style.display="none";
+
+}
+
+document.getElementById(id).style.display="block";
+
+}
+
+
+async function calculateSalary(){
+
+let basic=parseFloat(document.getElementById("basic").value);
+
+if(!basic){
+
+alert("Enter Basic Salary");
+
+return;
+
+}
+
+let hra=basic*0.20;
+
+let da=basic*0.10;
+
+let pf=basic*0.12;
+
+let net=basic+hra+da-pf;
+
+document.getElementById("result").innerHTML=
+
+"<strong style='color:#4a6cf7'>Net Salary: ₹ "+net.toFixed(2)+"</strong>";
+
+await fetch("/salary/save",{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+
+empId:empId,
+
+basicSalary:basic,
+
+bonus:hra+da,
+
+deductions:pf,
+
+netSalary:net,
+
+month:new Date().toLocaleString("default",{month:"long"}),
+
+year:new Date().getFullYear()
+
+})
+
+});
+
+document.getElementById("slip").innerHTML=`
+
+<h3>Payroll Slip</h3>
+
+<p>Employee Name: ${loggedUser}</p>
+
+<p>Designation: ${designation}</p>
+
+<p>Basic Salary: ₹ ${basic}</p>
+
+<p>HRA: ₹ ${hra}</p>
+
+<p>DA: ₹ ${da}</p>
+
+<p>PF Deduction: ₹ ${pf}</p>
+
+<p><strong>Net Salary: ₹ ${net.toFixed(2)}</strong></p>
+
+<button onclick="window.print()">Print Slip</button>
+
+`;
+
+}
+
+async function loadPastSalary(){
+
+try{
+
+const response=await fetch("/salary/"+empId);
+
+const data=await response.json();
+
+if(!data){
+
+document.getElementById("pastSalary").innerHTML="No salary record found.";
+
+return;
+
+}
+
+document.getElementById("pastSalary").innerHTML=`
+
+Month: ${data.month || "N/A"} <br>
+
+Net Salary: ₹ ${data.netSalary}
+
+`;
+
+}
+
+catch(error){
+
+document.getElementById("pastSalary").innerHTML="No salary record found.";
+
+}
+
+}
+
+loadPastSalary();
+
+async function changePassword(){
+
+const oldPassword=prompt("Enter Old Password:");
+
+const newPassword=prompt("Enter New Password:");
+
+if(!oldPassword || !newPassword){
+
+alert("Fields cannot be empty");
+
+return;
+
+}
+
+const response=await fetch("/auth/change-password",{
+
+method:"POST",
+
+headers:{"Content-Type":"application/json"},
+
+body:JSON.stringify({
+
+empId:empId,
+
+oldPassword:oldPassword,
+
+newPassword:newPassword
+
+})
+
+});
+
+const data=await response.json();
+
+alert(data.message);
+
+}
+
+function logout(){
+
+localStorage.clear();
+
+window.location.href="/login.html";
+
+}
+
+</script>
+
+</body>
+</html>
