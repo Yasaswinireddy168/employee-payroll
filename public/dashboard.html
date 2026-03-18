@@ -129,7 +129,7 @@ input {
 
 <div id="working" class="card hiddenSection">
 <h3>Working Days</h3>
-<p>Total Working Days: 22</p>
+<p>Total Working Days: <span id="workingDays"></span></p>
 </div>
 
 <div id="salaryPast" class="card hiddenSection">
@@ -347,7 +347,7 @@ document.getElementById("pastSalary").innerHTML="No salary record found.";
 return;
 
 }
-const data=await response.json();
+
 
 document.getElementById("pastSalary").innerHTML=`
 
