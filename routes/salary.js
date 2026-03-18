@@ -36,7 +36,7 @@ router.get("/:empId", async (req, res) => {
     try {
 
         const salary = await Salary.findOne({ empId: req.params.empId })
-                                   .sort({ year: -1 });
+                                   .sort({ year: -1,month: -1 });
 
         if (!salary) {
             return res.status(404).json({ message: "No salary record found" });
