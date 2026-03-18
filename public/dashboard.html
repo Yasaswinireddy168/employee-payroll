@@ -212,6 +212,33 @@ container.innerHTML=`
 
 loadEmployeeCard();
 
+
+// 👇 ADD HERE
+function calculateWorkingDays(){
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
+    const totalDays = new Date(year, month + 1, 0).getDate();
+
+    let workingDays = 0;
+
+    for(let i = 1; i <= totalDays; i++){
+
+        const date = new Date(year, month, i);
+        const day = date.getDay();
+
+        if(day !== 0){ // exclude Sunday
+            workingDays++;
+        }
+    }
+
+    document.getElementById("workingDays").innerText = workingDays;
+}
+
+
+calculateWorkingDays();
 function showSection(id){
 
 let sections=document.getElementsByClassName("hiddenSection");
