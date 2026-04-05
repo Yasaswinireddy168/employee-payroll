@@ -32,15 +32,36 @@ router.post("/save", async (req, res) => {
 
 // GET LATEST SALARY FOR EMPLOYEE
 router.get("/:empId", async (req, res) => {
-
     try {
 
-        const salary = await Salary.findOne({ empId: req.params.empId })
-                                   .sort({ year: -1,month: -1 });
+        const salary = await Salary.aggregate([
+            { $match: { empId: req.params.empId } },
 
-        if (!salary) {
-            return res.status(404).json({ message: "No salary record found" });
-        }
+            // Sort latest first
+            { $sort: { year: -1, _id: -1 } },
+
+            // Group by month + year
+            {
+                $group: {
+                    _id: { month: "$month", year: "$year" },
+                    netSalary: { $first: "$netSalary" }
+                }
+            },
+
+            // Format output
+            {
+                $project: {
+                    _id: 0,
+                    month: "$_id.month",
+                    year: "$_id.year",
+                    netSalary: 1
+                }
+            },
+
+            // Sort again (latest month first)
+            { $sort: { year: -1 } }
+
+        ]);
 
         res.json(salary);
 
@@ -48,5 +69,4 @@ router.get("/:empId", async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
-
 module.exports = router;

@@ -337,37 +337,34 @@ document.getElementById("slip").innerHTML=`
 
 async function loadPastSalary(){
 
-try{
+    try{
 
-const response=await fetch("/salary/"+empId);
+        const response = await fetch("/salary/" + empId);
+        const data = await response.json();
 
-const data=await response.json();
+        if(!data || data.length === 0){
+            document.getElementById("pastSalary").innerHTML = "No salary record found.";
+            return;
+        }
 
-if(!data){
+        let html = "";
 
-document.getElementById("pastSalary").innerHTML="No salary record found.";
+        data.forEach(s => {
+            html += `
+                <p>
+                Month: ${s.month} <br>
+                Net Salary: ₹ ${s.netSalary}
+                </p>
+                <hr>
+            `;
+        });
 
-return;
+        document.getElementById("pastSalary").innerHTML = html;
 
-}
-
-
-document.getElementById("pastSalary").innerHTML=`
-
-Month: ${data.monthName || "N/A"} <br>
-
-Net Salary: ₹ ${data.netSalary}
-
-`;
-
-}
-
-catch(error){
-
-document.getElementById("pastSalary").innerHTML="No salary record found.";
-
-}
-
+    }
+    catch(error){
+        document.getElementById("pastSalary").innerHTML = "Error loading data.";
+    }
 }
 
 loadPastSalary();
